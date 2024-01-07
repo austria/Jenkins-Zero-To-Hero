@@ -6,7 +6,7 @@ spec:
   type: NodePort
   ports:
   - name: http
-    port: 8030
+    port: 80
     targetPort: 8080
     nodePort: 31367
     protocol: TCP
