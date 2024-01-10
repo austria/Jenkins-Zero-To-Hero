@@ -73,7 +73,7 @@ stage('delete docker file') {
         steps {
            script {
                  def previousBuildNumber = currentBuild.number - 1
-            sh "docker rmi mehranabbasi/ultimate-cicd:${previousBuildNumber}"
+            sh "docker rmi mehranabbasi/ultimate-cicd:${BUILD_NUMBER}"
             }
         }
     }
