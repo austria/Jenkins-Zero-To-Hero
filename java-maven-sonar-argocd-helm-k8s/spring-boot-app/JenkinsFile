@@ -68,6 +68,7 @@ environment {
         }
     }
 
+
  stage('Remove Old Docker Images') {
     steps {
       script {
