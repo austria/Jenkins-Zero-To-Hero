@@ -68,15 +68,31 @@ environment {
         }
     }
 
-stage('delete docker file') {
-      
-        steps {
-           script {
-                 def previousBuildNumber = currentBuild.number - 1
-            sh "docker rmi mehranabbasi/ultimate-cicd:${BUILD_NUMBER}"
+ stage('Remove Old Docker Images') {
+    steps {
+      script {
+        def currentImage = "mehranabbasi/ultimate-cicd:${BUILD_NUMBER}"
+        def oldImagePrefix = "mehranabbasi/ultimate-cicd:"
+
+        // Get a list of all Docker images with the specified prefix
+        def oldImages = sh(script: "docker images --filter=reference='${oldImagePrefix}*' --format '{{.Repository}}:{{.Tag}}'", returnStdout: true).trim().split("\n")
+
+        // Remove each old image if not used by any container
+        oldImages.each { image ->
+          if (image != currentImage) {
+            def containersUsingImage = sh(script: "docker ps -a --format '{{.Image}}' | grep '${image}'", returnStatus: true).exitCode
+            if (containersUsingImage == 0) {
+              sh "docker rmi $image"
+            } else {
+              echo "Image $image is still in use by one or more containers. Skipping removal."
             }
+          }
         }
+      }
     }
+  }
+
+
    
   }
 }
