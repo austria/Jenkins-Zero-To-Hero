@@ -68,29 +68,30 @@ environment {
         }
     }
 
- stage('Remove Old Docker Images') {
+stage('Remove Old Docker Images') {
     steps {
-      script {
-        def currentImage = "mehranabbasi/ultimate-cicd:${BUILD_NUMBER}"
-        def oldImagePrefix = "mehranabbasi/ultimate-cicd:"
+        script {
+            def currentImage = "mehranabbasi/ultimate-cicd:${BUILD_NUMBER}"
+            def oldImagePrefix = "mehranabbasi/ultimate-cicd:"
 
-        // Get a list of all Docker images with the specified prefix
-        def oldImages = sh(script: "docker images --filter=reference='${oldImagePrefix}*' --format '{{.Repository}}:{{.Tag}}'", returnStdout: true).trim().split("\n")
+            // Get a list of all Docker images with the specified prefix
+            def oldImages = sh(script: "docker images --filter=reference='${oldImagePrefix}*' --format '{{.Repository}}:{{.Tag}}'", returnStdout: true).trim().split("\n")
 
-        // Remove each old image if not used by any container
-        oldImages.each { image ->
-          if (image != currentImage) {
-            def containersUsingImage = sh(script: "docker ps -a --format '{{.Image}}' | grep '${image}'", returnStatus: true).exitCode
-            if (containersUsingImage == 0) {
-              sh "docker rmi $image"
-            } else {
-              echo "Image $image is still in use by one or more containers. Skipping removal."
+            // Remove each old image if not used by any container
+            oldImages.each { image ->
+                if (image != currentImage) {
+                    def containersUsingImage = sh(script: "docker ps -a --filter ancestor=${image} --format '{{.Image}}'", returnStatus: true).exitCode
+                    if (containersUsingImage != 0) {
+                        echo "Image $image is still in use by one or more containers. Skipping removal."
+                    } else {
+                        sh "docker rmi $image"
+                    }
+                }
             }
-          }
         }
-      }
     }
-  }
+}
+
 
 
    
